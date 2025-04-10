@@ -1,55 +1,65 @@
 package com.example.demo.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "usuarios")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class Usuario {
-    
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    
-    @Column(nullable = false, unique = true)
-    private String username;
-    
-    @Column(nullable = false)
-    private String password;
-    
-    @Column(nullable = false, unique = true)
-    private String email;
-    
-    private String nombre;
-    
-    private String apellidos;
-    
-    @Column(name = "fecha_registro")
-    private LocalDateTime fechaRegistro;
-    
-    @Column(name = "ultimo_acceso")
-    private LocalDateTime ultimoAcceso;
-    
+@Data 
+@Entity 
+@Table(name = "usuarios") 
+public class Usuario {     
+    @Id     
+    @GeneratedValue(strategy = GenerationType.IDENTITY)     
+    private Long id;      
+
+    @Column(unique = true, nullable = false)     
+    private String username;      
+
+    @Column(nullable = false)     
+    private String password;      
+
+    @Column(nullable = false, unique = true)     
+    private String email;      
+
+    private String nombre;      
+    private String apellidos;      
+
+    @Column(name = "fecha_registro", nullable = false)     
+    private LocalDateTime fechaRegistro;      
+
+    @Column(name = "ultimo_acceso", nullable = false)     
+    private LocalDateTime ultimoAcceso;      
+
     @Enumerated(EnumType.STRING)
-    private Role role;
-    
-    @Column(name = "active")
-    private boolean active = true;
-    
-    @PrePersist
-    protected void onCreate() {
-        fechaRegistro = LocalDateTime.now();
-        ultimoAcceso = LocalDateTime.now();
-    }
-    
-    // Rol de usuario (puedes expandir según necesites)
+    @Column(name = "role", nullable = false)
+    private Role role;      
+
+    @Column(name = "activo", nullable = false)
+    private Boolean active;      
+
+    public Usuario() {
+        this.role = Role.ROLE_USER;
+        this.active = true;
+    }      
+
+    @PrePersist     
+    protected void onCreate() {         
+        if (this.fechaRegistro == null) {             
+            this.fechaRegistro = LocalDateTime.now();         
+        }         
+        if (this.ultimoAcceso == null) {             
+            this.ultimoAcceso = LocalDateTime.now();         
+        }         
+        if (this.active == null) {             
+            this.active = Boolean.TRUE;         
+        }         
+        if (this.role == null) {             
+            this.role = Role.ROLE_USER;         
+        }     
+    }      
+
     public enum Role {
-        ADMIN, USER
-    }
+        ROLE_ADMIN,
+        ROLE_USER
+    } 
 }

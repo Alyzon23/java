@@ -2,18 +2,17 @@ package com.example.demo.controller;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/usuarios")
-public class UsuarioController {
+@RequestMapping("/api/admin")
+public class AdminController {
 
-    @GetMapping("/perfil")
-    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-    public ResponseEntity<?> obtenerPerfil(Authentication authentication) {
-        return ResponseEntity.ok("Perfil de: " + authentication.getName());
+    @GetMapping("/dashboard")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> panelAdmin() {
+        return ResponseEntity.ok("Panel de administración solo para admins");
     }
 }
