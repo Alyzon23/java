@@ -1,9 +1,12 @@
 package com.example.demo.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
@@ -14,7 +17,6 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Libro {
-    
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -29,11 +31,11 @@ public class Libro {
     
     private String genero;
     
-    @Column(length = 2000)
-    private String sinopsis;
+    @Column(length = 2000, name = "descripcion")    // Cambiado de sinopsis a descripcion
+    private String descripcion;                     // Cambiado de sinopsis a descripcion
     
-    @Column(name = "numero_paginas")
-    private Integer numeroPaginas;
+    @Column(name = "paginas")                       // Cambiado de numero_paginas a paginas
+    private Integer paginas;                        // Cambiado de numeroPaginas a paginas
     
     @Column(name = "file_path")
     private String filePath;
@@ -45,21 +47,24 @@ public class Libro {
     private Long fileSize;
     
     // Relación con Editorial - Un libro pertenece a una editorial
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "editorial_id")
+    @JsonBackReference
     private Editorial editorial;
     
     // Relación con Autor - Un libro puede tener varios autores
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
         name = "libro_autor",
         joinColumns = @JoinColumn(name = "libro_id"),
         inverseJoinColumns = @JoinColumn(name = "autor_id")
     )
+    @JsonManagedReference
     private Set<Autor> autores = new HashSet<>();
     
-    // Relación con Imagen - Un libro puede tener varias imágenes (portada, contraportada, etc.)
-    @OneToMany(mappedBy = "libro", cascade = CascadeType.ALL, orphanRemoval = true)
+    // Relación con Imagen - Un libro puede tener varias imágenes
+    @OneToMany(mappedBy = "libro", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @JsonManagedReference
     private Set<Imagen> imagenes = new HashSet<>();
     
     @Column(name = "fecha_creacion")
@@ -77,6 +82,25 @@ public class Libro {
     @PreUpdate
     protected void onUpdate() {
         fechaActualizacion = LocalDateTime.now();
+    }
+    
+    // Métodos de compatibilidad para mantener backward compatibility
+    // Estos métodos permiten usar tanto los nuevos nombres como los antiguos
+    
+    public String getSinopsis() {
+        return this.descripcion;
+    }
+    
+    public void setSinopsis(String sinopsis) {
+        this.descripcion = sinopsis;
+    }
+    
+    public Integer getNumeroPaginas() {
+        return this.paginas;
+    }
+    
+    public void setNumeroPaginas(Integer numeroPaginas) {
+        this.paginas = numeroPaginas;
     }
     
     // Métodos útiles para manejar las relaciones

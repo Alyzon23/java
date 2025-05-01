@@ -1,0 +1,17 @@
+# Usar una imagen oficial de OpenJDK 21 como base
+FROM openjdk:21-jdk-slim
+
+# Definir el directorio de trabajo dentro del contenedor
+WORKDIR /app
+
+# Copiar el archivo JAR al contenedor
+COPY build/libs/demo-0.0.1-SNAPSHOT.jar /app/demo.jar
+
+# Configurar el perfil activo para Spring Boot
+ENV SPRING_PROFILES_ACTIVE=prod
+
+# Exponer el puerto 8080 utilizado por la aplicación
+EXPOSE 8080
+
+# Comando para ejecutar la aplicación
+CMD ["java", "-jar", "demo.jar"]

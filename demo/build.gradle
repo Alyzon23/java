@@ -55,6 +55,7 @@ tasks.named('test') {
     useJUnitPlatform()
 }
 
+
 // Configuración adicional para manejar problemas de compatibilidad de Jakarta EE
 configurations.all {
     exclude group: 'org.glassfish', module: 'jakarta.el'

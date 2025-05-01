@@ -1,9 +1,11 @@
 package com.example.demo.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -12,34 +14,33 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Imagen {
-    
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    
-    @Column(nullable = false)
+
+    @Column(name = "nombre_archivo")
     private String nombreArchivo;
-    
-    @Column(name = "tipo_imagen")
-    private String tipoImagen; // portada, contraportada, etc.
-    
-    @Column(name = "file_path", nullable = false)
+
+    @Column(name = "file_path")
     private String filePath;
-    
-    @Column(name = "content_type")
-    private String contentType;
-    
+
     @Column(name = "file_size")
     private Long fileSize;
-    
-    // Relación con Libro - Una imagen pertenece a un libro
-    @ManyToOne
-    @JoinColumn(name = "libro_id")
-    private Libro libro;
-    
+
+    @Column(name = "content_type")
+    private String contentType;
+
+    @Column(name = "tipo_imagen")
+    private String tipoImagen;
+
     @Column(name = "fecha_subida")
     private LocalDateTime fechaSubida;
-    
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "libro_id")
+    @JsonBackReference
+    private Libro libro;
+
     @PrePersist
     protected void onCreate() {
         fechaSubida = LocalDateTime.now();

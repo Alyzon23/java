@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  api:
+    image: biblioteca:latest
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=production
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/java
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=12345
+      - JWT_SECRET=genera_un_secreto_muy_seguro_aqui
+      - JWT_EXPIRATION=86400000
+    networks:
+      - desarrollonet
+    depends_on:
+      - db
+
+  db:
+    image: postgres:14
+    volumes:
+      - pg_lyxabook_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=12345
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=java
+    networks:
+      - desarrollonet
+
+networks:
+  desarrollonet:
+    external: true
+
+volumes:
+  pg_lyxabook_data:
+    external: true
