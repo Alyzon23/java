@@ -1,6 +1,5 @@
 package com.example.demo.controller;
 
-import com.example.demo.model.Autor;
 import com.example.demo.model.Editorial;
 import com.example.demo.model.Libro;
 import com.example.demo.service.AutorService;
@@ -22,8 +21,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.UUID;
 import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/libros")
@@ -109,50 +108,42 @@ public class LibroController {
         }
     }
     
-    // AÑADIR: Método para eliminar un libro
-    @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteLibro(@PathVariable("id") Long id) {
-        logger.info("Intentando eliminar libro con ID: {}", id);
-        try {
-            if (!libroService.existsById(id)) {
-                logger.warn("Intento de eliminar libro inexistente con ID: {}", id);
-                return ResponseEntity.notFound().build();
-            }
-            
-            libroService.deleteLibro(id);
-            logger.info("Libro con ID: {} eliminado exitosamente", id);
-            return ResponseEntity.ok().body("Libro eliminado correctamente");
-        } catch (Exception e) {
-            logger.error("Error al eliminar libro con ID: {}", id, e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error al eliminar libro: " + e.getMessage());
-        }
-    }
-    
-    // AÑADIR: Método para actualizar un libro completamente (PUT)
-    @PutMapping("/{id}")
-    public ResponseEntity<?> updateLibro(@PathVariable("id") Long id, @RequestBody Libro libro) {
+    // MODIFICADO: Método para actualizar un libro completamente (PUT)
+    @PutMapping(value = "/{id}", consumes = {MediaType.APPLICATION_JSON_VALUE, "application/json;charset=UTF-8"})
+    public ResponseEntity<?> updateLibro(@PathVariable("id") Long id, @RequestBody Map<String, Object> libroData) {
         logger.info("Intentando actualizar libro con ID: {}", id);
         try {
             return libroService.getLibroById(id)
                     .map(existingLibro -> {
                         // Actualizar campos
-                        existingLibro.setTitulo(libro.getTitulo());
-                        existingLibro.setIsbn(libro.getIsbn());
-                        existingLibro.setGenero(libro.getGenero());
-                        existingLibro.setPaginas(libro.getPaginas());
-                        existingLibro.setDescripcion(libro.getDescripcion());
-                        
-                        // Procesar editorial si se proporciona
-                        if (libro.getEditorial() != null && libro.getEditorial().getId() != null) {
-                            Editorial editorial = editorialService.getEditorialById(libro.getEditorial().getId())
-                                    .orElse(null);
-                            existingLibro.setEditorial(editorial);
+                        if (libroData.containsKey("titulo")) {
+                            existingLibro.setTitulo((String) libroData.get("titulo"));
+                        }
+                        if (libroData.containsKey("isbn")) {
+                            existingLibro.setIsbn((String) libroData.get("isbn"));
+                        }
+                        if (libroData.containsKey("genero")) {
+                            existingLibro.setGenero((String) libroData.get("genero"));
+                        }
+                        if (libroData.containsKey("paginas")) {
+                            existingLibro.setPaginas(Integer.valueOf(libroData.get("paginas").toString()));
+                        }
+                        if (libroData.containsKey("descripcion")) {
+                            existingLibro.setDescripcion((String) libroData.get("descripcion"));
+                        }
+                        if (libroData.containsKey("anioPublicacion")) {
+                            existingLibro.setAnioPublicacion(Integer.valueOf(libroData.get("anioPublicacion").toString()));
                         }
                         
-                        // Actualizar autores si se proporcionan
-                        if (libro.getAutores() != null) {
-                            existingLibro.setAutores(libro.getAutores());
+                        // Procesar editorial si se proporciona
+                        if (libroData.containsKey("editorial") && libroData.get("editorial") != null) {
+                            Map<String, Object> editorialMap = (Map<String, Object>) libroData.get("editorial");
+                            if (editorialMap.containsKey("id")) {
+                                Long editorialId = Long.valueOf(editorialMap.get("id").toString());
+                                Editorial editorial = editorialService.getEditorialById(editorialId)
+                                        .orElse(null);
+                                existingLibro.setEditorial(editorial);
+                            }
                         }
                         
                         // Actualizar fecha
@@ -173,8 +164,8 @@ public class LibroController {
         }
     }
     
-    // AÑADIR: Método para actualizar campos específicos de un libro (PATCH)
-    @PatchMapping("/{id}")
+    // MODIFICADO: Método para actualizar campos específicos de un libro (PATCH)
+    @PatchMapping(value = "/{id}", consumes = {MediaType.APPLICATION_JSON_VALUE, "application/json;charset=UTF-8"})
     public ResponseEntity<?> partialUpdateLibro(@PathVariable("id") Long id, @RequestBody Map<String, Object> updates) {
         logger.info("Intentando actualizar parcialmente libro con ID: {}", id);
         try {
@@ -191,17 +182,20 @@ public class LibroController {
                             existingLibro.setGenero((String) updates.get("genero"));
                         }
                         if (updates.containsKey("paginas")) {
-                            existingLibro.setPaginas((Integer) updates.get("paginas"));
+                            existingLibro.setPaginas(Integer.valueOf(updates.get("paginas").toString()));
                         }
                         if (updates.containsKey("descripcion")) {
                             existingLibro.setDescripcion((String) updates.get("descripcion"));
+                        }
+                        if (updates.containsKey("anioPublicacion")) {
+                            existingLibro.setAnioPublicacion(Integer.valueOf(updates.get("anioPublicacion").toString()));
                         }
                         
                         // Actualizar editorial si se proporciona
                         if (updates.containsKey("editorial") && updates.get("editorial") != null) {
                             Map<String, Object> editorialMap = (Map<String, Object>) updates.get("editorial");
                             if (editorialMap.containsKey("id")) {
-                                Long editorialId = ((Number) editorialMap.get("id")).longValue();
+                                Long editorialId = Long.valueOf(editorialMap.get("id").toString());
                                 Editorial editorial = editorialService.getEditorialById(editorialId)
                                         .orElse(null);
                                 existingLibro.setEditorial(editorial);
@@ -226,6 +220,23 @@ public class LibroController {
         }
     }
     
-    // Método para crear libro con multipart form-data (aquí deberías completar tu código)
-    // ...
+    // Método para eliminar un libro
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteLibro(@PathVariable("id") Long id) {
+        logger.info("Intentando eliminar libro con ID: {}", id);
+        try {
+            if (!libroService.existsById(id)) {
+                logger.warn("Intento de eliminar libro inexistente con ID: {}", id);
+                return ResponseEntity.notFound().build();
+            }
+            
+            libroService.deleteLibro(id);
+            logger.info("Libro con ID: {} eliminado exitosamente", id);
+            return ResponseEntity.ok().body("Libro eliminado correctamente");
+        } catch (Exception e) {
+            logger.error("Error al eliminar libro con ID: {}", id, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error al eliminar libro: " + e.getMessage());
+        }
+    }
 }
